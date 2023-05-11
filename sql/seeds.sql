@@ -12,13 +12,13 @@ VALUES (1, 'paper pusher', 50000, 1),
        (22, 'sanitations super', 36000, 3);
 
 INSERT INTO employees (id, first_name, last_name, role_id, manager_id)
-VALUES (123, 'greg', 'jones', '01', 226),
-       (124, 'timmy', 'Fitsimmons', '01', 226),
-       (125, 'josh', 'josherson', '01', 226),
-       (226, 'jimbo', 'pulwaker', '02', 226),
-       (1123, 'jason', 'smith', '11', 1225),
-       (1124, 'jasper', 'lightfoot', '11', 1225),
-       (1225, 'joey', 'butafuko', '12', 1225),
-       (2123, 'josiah', 'johnsenheimer', '21', 2225),
-       (2124, 'joseph', 'jorgenson', '21', 2225),
-       (2225, 'jordey', 'jigglebottom', '22', 2225);
+VALUES (123, 'greg', 'jones', 01, 226),
+       (124, 'timmy', 'Fitsimmons', 01, 226),
+       (125, 'josh', 'josherson', 01, 226),
+       (226, 'jimbo', 'pulwaker', 02, 226),
+       (1123, 'jason', 'smith', 11, 1225),
+       (1124, 'jasper', 'lightfoot', 11, 1225),
+       (1225, 'joey', 'butafuko', 12, 1225),
+       (2123, 'josiah', 'johnsenheimer', 21, 2225),
+       (2124, 'joseph', 'jorgenson', 21, 2225),
+       (2225, 'jordey', 'jigglebottom', 22, 2225);

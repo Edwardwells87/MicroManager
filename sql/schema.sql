@@ -14,11 +14,11 @@ CREATE TABLE employees (
   last_name VARCHAR(30),
   role_id INT,
   manager_id INT,
-  INDEX (role_id),
-  FOREIGN KEY (manager_id) REFERENCES employees(id)
+  FOREIGN KEY (manager_id) REFERENCES employees(id),
+  INDEX (role_id)
 );
 
-CREATE TABLE  roles (
+CREATE TABLE roles (
   id INT AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(30),
   department_id INT,
@@ -26,6 +26,3 @@ CREATE TABLE  roles (
   FOREIGN KEY (department_id) REFERENCES department(id),
   FOREIGN KEY (id) REFERENCES employees(role_id)
 );
-
-
--- // make a self reference ^^^

@@ -63,13 +63,82 @@ async function viewAllDepartmentsPrompt() {
   }
 }
 
-async function viewAllRoles() {
+async function viewAllRolesPrompt(){
   try {
-    const query = `SELECT roles.title, roles.role_id, departments.department_name, roles.salary
+    const query = `SELECT roles.title, roles.role_id, departments.departmentName, roles.salary
     FROM roles
-    JOIN departments ON roles.department_id = departments.department_id`,
+    JOIN department ON roles.department_id = department.id`;
+    const roles = await executeQuery(query);
+    console.table(roles);
+  } catch (error) {
+    console.error('An error occurred while fetching roles:', error);
   }
-  
+}
+
+async function addRolePrompt() {
+  try {
+    const departments = await executeQuery('SELECT * FROM department');
+    const { title, salary, department_id } = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'title',
+        message: 'Enter the title of the role:',
+      },
+      {
+        type: 'number',
+        name: 'salary',
+        message: 'Enter the salary for the role:',
+      },
+      {
+        type: 'list',
+        name: 'department_id',
+        message: 'Select the department for the role:',
+        choices: departments.map((department) => ({
+          name: department.departmentName,
+          value: department.id,
+        })),
+      },
+    ]);
+
+    const query = 'INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)';
+    await executeQuery(query, [title, salary, department_id]);
+    console.log('Role added successfully!');
+  } catch (error) {
+    console.error('An error occurred while adding a role:', error);
+  }
+}
+
+async function updateEmployeeRolePrompt() {
+  try {
+    const employees = await executeQuery('SELECT * FROM employees');
+    const roles = await executeQuery('SELECT * FROM roles');
+    const { employee_id, role_id } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'employee_id',
+        message: 'Select the employee to update:',
+        choices: employees.map((employee) => ({
+          name: `${employee.first_name} ${employee.last_name}`,
+          value: employee.id,
+        })),
+      },
+      {
+        type: 'list',
+        name: 'role_id',
+        message: 'Select the new role for the employee:',
+        choices: roles.map((role) => ({
+          name: role.title,
+          value: role.id,
+        })),
+      },
+    ]);
+
+    const query = 'UPDATE employees SET role_id = ? WHERE id = ?';
+    await executeQuery(query, [role_id, employee_id]);
+    console.log('Employee role updated successfully!');
+  } catch (error) {
+    console.error('An error occurred while updating an employee role:', error);
+  }
 }
 
 // Prompt for adding a department
@@ -97,12 +166,11 @@ async function addANewPerson() {
   let rolesArray = [];
 
   try {
-    connection.query('SELECT title FROM Role', (err, results) => {
+    connection.query('SELECT title FROM Roles', (err, results) => {
       if (err) { err('cant get the rolls') }
       else {
-        // rolesArray will now be an array of string values--the titles of the roles
-        rolesArray = results.map(result => results.title)
-        console.log(`AYEEEEEEEEEEEEEEEEEEEEEEEEEEE its an array of results ${rolesArray}`)
+        rolesArray = results.map(result => result.title)
+        console.log('AYEEEEEEEEEEEEEEEEEEEEEEEEEEE its an array of results' + rolesArray)
       }
     })
 
@@ -148,7 +216,18 @@ async function addANewPerson() {
 }
 
 
-
+async function viewAllEmployeesPrompt() {
+  try {
+    const query = `SELECT employees.id, employees.first_name, employees.last_name, roles.title, department.departmentName
+    FROM employees
+    JOIN roles ON employees.role_id = roles.id
+    JOIN department ON roles.department_id = department.id`;
+    const employees = await executeQuery(query);
+    console.table(employees);
+  } catch (error) {
+    console.error('An error occurred while fetching employees:', error);
+  }
+}
 
 
 // Close the database connection when exiting the application
@@ -167,22 +246,22 @@ async function startApp() {
         await viewAllDepartmentsPrompt();
         break;
       case 'View all roles':
-
+ viewAllRolesPrompt()
         break;
       case 'View all employees':
-        // Implement the prompt for viewing all employees
+       await viewAllEmployeesPrompt();
         break;
       case 'Add a department':
         await addDepartmentPrompt();
         break;
       case 'Add a role':
-        // Implement the prompt for adding a role
+        await addRolePrompt();
         break;
       case 'Add an employee':
-        await addANewPerson()
+        await addANewPerson();
         break;
-      case :
-        // Implement the prompt for updating an employee's role
+      case 'update an Employee role':
+        await viewAllRolesPrompt();
         break;
       case 'Exit':
         exit = true;
