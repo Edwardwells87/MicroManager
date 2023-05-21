@@ -65,19 +65,19 @@ async function viewAllDepartmentsPrompt() {
 
 async function viewAllRolesPrompt(){
   try {
-    const query = `SELECT roles.title, roles.role_id, departments.departmentName, roles.salary
-    FROM roles
-    JOIN department ON roles.department_id = department.id`;
+    const query = `SELECT roles.title, roles.id, departments.departmentName, roles.salary
+FROM roles
+JOIN departments ON roles.department_id = departments.id`;
     const roles = await executeQuery(query);
     console.table(roles);
-  } catch (error) {
-    console.error('An error occurred while fetching roles:', error);
+  } catch (err) {
+    console.err('An error occurred while fetching roles:', err);
   }
 }
 
 async function addRolePrompt() {
   try {
-    const departments = await executeQuery('SELECT * FROM department');
+    const departments = await executeQuery('SELECT * FROM roles');
     const { title, salary, department_id } = await inquirer.prompt([
       {
         type: 'input',
@@ -152,7 +152,7 @@ async function addDepartmentPrompt() {
       },
     ]);
 
-    const query = 'INSERT INTO departments (name) VALUES (?)';
+    const query = 'INSERT INTO departments (departmentName) VALUES (?)';
     const result = await executeQuery(query, [departmentName]);
     console.log('Department added successfully!');
   } catch (error) {
@@ -160,19 +160,19 @@ async function addDepartmentPrompt() {
   }
 }
 
-//prompt for adding a person 
+
 async function addANewPerson() {
-
-  let rolesArray = [];
-
   try {
-    connection.query('SELECT title FROM Roles', (err, results) => {
-      if (err) { err('cant get the rolls') }
-      else {
-        rolesArray = results.map(result => result.title)
-        console.log('AYEEEEEEEEEEEEEEEEEEEEEEEEEEE its an array of results' + rolesArray)
-      }
-    })
+    let rolesArray = await new Promise((resolve, reject) => {
+      connection.query('SELECT title FROM Roles', (err, results) => {
+        if (err) {
+          console.error("Can't get the roles:", err);
+          reject(err);
+        } else {
+          resolve(results.map(result => result.title));
+        }
+      });
+    });
 
     const {firstName, lastName, roles, bossId} = await inquirer.prompt([
       {
@@ -209,25 +209,29 @@ async function addANewPerson() {
 
     ])
 
-    const query = `'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [${firstName}, ${lastName}, ${roles}, ${bossId}]`;
-  } catch {
-
+    const query = `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+    await executeQuery(query, [firstName, lastName, roles, bossId]);
+  } catch (error) {
+    console.error('An error occurred:', error);
   }
 }
 
 
+
+
 async function viewAllEmployeesPrompt() {
   try {
-    const query = `SELECT employees.id, employees.first_name, employees.last_name, roles.title, department.departmentName
+    const query = `SELECT employees.id, employees.first_name, employees.last_name, roles.title, departments.departmentName
     FROM employees
     JOIN roles ON employees.role_id = roles.id
-    JOIN department ON roles.department_id = department.id`;
+    JOIN departments ON roles.department_id = departments.id`;
     const employees = await executeQuery(query);
     console.table(employees);
   } catch (error) {
     console.error('An error occurred while fetching employees:', error);
   }
 }
+
 
 
 // Close the database connection when exiting the application
@@ -246,7 +250,7 @@ async function startApp() {
         await viewAllDepartmentsPrompt();
         break;
       case 'View all roles':
- viewAllRolesPrompt()
+ viewAllRolesPrompt();
         break;
       case 'View all employees':
        await viewAllEmployeesPrompt();
@@ -261,7 +265,7 @@ async function startApp() {
         await addANewPerson();
         break;
       case 'update an Employee role':
-        await viewAllRolesPrompt();
+        await updateEmployeeRolePrompt();
         break;
       case 'Exit':
         exit = true;
