@@ -18,7 +18,7 @@ connection.connect((error) => {
   }
 });
 
-// Prompt for the main menu
+
 function mainMenuPrompt() {
   return inquirer.prompt([
     {
@@ -39,7 +39,7 @@ function mainMenuPrompt() {
   ]);
 }
 
-// Function to execute an SQL query
+
 function executeQuery(query, values = []) {
   return new Promise((resolve, reject) => {
     connection.query(query, values, (error, results) => {
@@ -52,7 +52,7 @@ function executeQuery(query, values = []) {
   });
 }
 
-// Prompt for viewing all departments
+
 async function viewAllDepartmentsPrompt() {
   try {
     const query = 'SELECT * FROM departments';
@@ -63,7 +63,7 @@ async function viewAllDepartmentsPrompt() {
   }
 }
 
-async function viewAllRolesPrompt(){
+async function viewAllRolesPrompt() {
   try {
     const query = `SELECT roles.title, roles.id, departments.departmentName, roles.salary
 FROM roles
@@ -77,7 +77,7 @@ JOIN departments ON roles.department_id = departments.id`;
 
 async function addRolePrompt() {
   try {
-    const departments = await executeQuery('SELECT * FROM roles');
+    const departments = await executeQuery('SELECT * FROM departments');
     const { title, salary, department_id } = await inquirer.prompt([
       {
         type: 'input',
@@ -100,13 +100,14 @@ async function addRolePrompt() {
       },
     ]);
 
-    const query = 'INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)';
+    const query = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
     await executeQuery(query, [title, salary, department_id]);
     console.log('Role added successfully!');
   } catch (error) {
     console.error('An error occurred while adding a role:', error);
   }
 }
+
 
 async function updateEmployeeRolePrompt() {
   try {
@@ -164,31 +165,31 @@ async function addDepartmentPrompt() {
 async function addANewPerson() {
   try {
     let rolesArray = await new Promise((resolve, reject) => {
-      connection.query('SELECT title FROM Roles', (err, results) => {
+      connection.query('SELECT id, title FROM roles', (err, results) => {
         if (err) {
           console.error("Can't get the roles:", err);
           reject(err);
         } else {
-          resolve(results.map(result => result.title));
+          resolve(results.map(result => ({ name: result.title, value: result.id })));
         }
       });
     });
 
-    const {firstName, lastName, roles, bossId} = await inquirer.prompt([
+    const { firstName, lastName, roles, bossId } = await inquirer.prompt([
       {
         type: 'input',
         name: 'firstName',
-        message: "what is this person's first name?",
+        message: "What is this person's first name?",
       },
       {
         type: 'input',
         name: 'lastName',
-        message: "what is this person's last name?"
+        message: "What is this person's last name?"
       },
       {
         type: 'list',
         name: 'roles',
-        message: 'what role would you like to assign to this person?',
+        message: 'What role would you like to assign to this person?',
         choices: rolesArray
       },
       {
@@ -200,23 +201,18 @@ async function addANewPerson() {
       {
         type: 'number',
         name: 'bossId',
-        message: 'Please enter the id of the employee\'s boss.',
-        when: (answersHash) => {
-          if(answersHash.hasBoss == 'yes') return true;
-          return false;
-        }
+        message: "Please enter the ID of the employee's boss.",
+        when: (answersHash) => answersHash.hasBoss === 'yes'
       }
-
-    ])
+    ]);
 
     const query = `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
     await executeQuery(query, [firstName, lastName, roles, bossId]);
+    console.log('New employee added successfully!');
   } catch (error) {
     console.error('An error occurred:', error);
   }
 }
-
-
 
 
 async function viewAllEmployeesPrompt() {
@@ -250,10 +246,10 @@ async function startApp() {
         await viewAllDepartmentsPrompt();
         break;
       case 'View all roles':
- viewAllRolesPrompt();
+        viewAllRolesPrompt();
         break;
       case 'View all employees':
-       await viewAllEmployeesPrompt();
+        await viewAllEmployeesPrompt();
         break;
       case 'Add a department':
         await addDepartmentPrompt();
@@ -264,7 +260,7 @@ async function startApp() {
       case 'Add an employee':
         await addANewPerson();
         break;
-      case 'update an Employee role':
+      case 'Update an employee role':
         await updateEmployeeRolePrompt();
         break;
       case 'Exit':
